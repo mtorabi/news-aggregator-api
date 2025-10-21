@@ -37,7 +37,9 @@ return [
             },
             'items_path' => 'response.docs',
             'mapping' => [
-                'external_id' => '_id',
+                'external_id' => function ($item) {
+                    return $item['_id'];
+                },
                 'title' => 'headline.main',
                 'url' => 'web_url',
                 'body' => 'abstract',
@@ -56,7 +58,9 @@ return [
             },
             'items_path' => 'response.results',
             'mapping' => [
-                'external_id' => 'id',
+                'external_id' => function ($item) {
+                    return $item['id'];
+                },
                 'title' => 'webTitle',
                 'url' => 'webUrl',
                 'body' => 'fields.trailText',
