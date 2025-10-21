@@ -14,6 +14,8 @@ RUN apk add --no-cache \
 RUN apk add --no-cache --virtual .build-deps \
     autoconf g++ make \
     && docker-php-ext-install pdo_mysql mbstring zip exif pcntl bcmath gd \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
     && apk del .build-deps
 
 # Install Composer securely

@@ -66,6 +66,22 @@ services:
     networks:
       - laravel
 
+  horizon:
+    image: laravel_app:dev
+    container_name: laravel_horizon
+    restart: unless-stopped
+    command: php artisan horizon
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+      - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini:ro
+    depends_on:
+      - app
+      - db
+      - redis
+    networks:
+      - laravel
+
 volumes:
   dbdata:
 
