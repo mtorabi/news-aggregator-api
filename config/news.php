@@ -10,13 +10,15 @@ return [
     'resources' => [
         'news_api_org' => [
             'name' => 'NewsAPI.Org',
-            'url' => function($from, $to) {
-                return 'https://newsapi.org/v2/everything?sortBy=publishedAt&apiKey=' . env('NEWS_API_ORG_KEY').
-                       '&from=' . $from->format('Y-m-d') . '&to=' . $to->format('Y-m-d') . '&language=en&pageSize=100';
+            'url' => function ($from, $to) {
+                return 'https://newsapi.org/v2/everything?sortBy=publishedAt&apiKey=' . env('NEWS_API_ORG_KEY') .
+                    '&from=' . $from->format('Y-m-d') . '&to=' . $to->format('Y-m-d') . '&language=en&pageSize=100';
             },
             'items_path' => 'articles',
             'mapping' => [
-                'id' => 'url',
+                'external_id' => function ($item) {
+                    return base64_encode($item['url']);
+                },
                 'title' => 'title',
                 'url' => 'url',
                 'body' => 'description',
@@ -29,13 +31,13 @@ return [
         ],
         'ny_times' => [
             'name' => 'NY Times',
-            'url' => function($from, $to) {
-                return 'https://api.nytimes.com/svc/search/v2/articlesearch.json?api-key=' . env('NY_TIMES_API_KEY').
-                       '&begin_date=' . $from->format('Ymd') . '&end_date=' . $to->format('Ymd');
+            'url' => function ($from, $to) {
+                return 'https://api.nytimes.com/svc/search/v2/articlesearch.json?api-key=' . env('NY_TIMES_API_KEY') .
+                    '&begin_date=' . $from->format('Ymd') . '&end_date=' . $to->format('Ymd');
             },
             'items_path' => 'response.docs',
             'mapping' => [
-                'id' => 'web_url',
+                'external_id' => '_id',
                 'title' => 'headline.main',
                 'url' => 'web_url',
                 'body' => 'abstract',
@@ -48,13 +50,13 @@ return [
         ],
         'the_guardian' => [
             'name' => 'The Guardian',
-            'url' => function($from, $to) {
+            'url' => function ($from, $to) {
                 return 'https://content.guardianapis.com/search?from-date=' . $from->format('Y-m-d') .
-                       '&to-date=' . $to->format('Y-m-d') . '&api-key=' . env('GUARDIAN_API_KEY') . '&show-fields=thumbnail,byline,trailText&page-size=100';
+                    '&to-date=' . $to->format('Y-m-d') . '&api-key=' . env('GUARDIAN_API_KEY') . '&show-fields=thumbnail,byline,trailText&page-size=100';
             },
             'items_path' => 'response.results',
             'mapping' => [
-                'id' => 'id',
+                'external_id' => 'id',
                 'title' => 'webTitle',
                 'url' => 'webUrl',
                 'body' => 'fields.trailText',
