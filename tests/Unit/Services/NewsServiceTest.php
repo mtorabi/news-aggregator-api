@@ -6,9 +6,8 @@ use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Tests\TestCase;
 
-uses(TestCase::class, RefreshDatabase::class);
+uses(RefreshDatabase::class);
 
 describe('NewsService', function () {
     beforeEach(function () {
