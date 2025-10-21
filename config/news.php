@@ -12,7 +12,7 @@ return [
             'name' => 'NewsAPI.Org',
             'url' => function ($from, $to) {
                 return 'https://newsapi.org/v2/everything?sortBy=publishedAt&apiKey=' . env('NEWS_API_ORG_KEY') .
-                    '&from=' . $from->format('Y-m-d') . '&to=' . $to->format('Y-m-d') . '&language=en&pageSize=100';
+                    '&from=' . $from->format('Y-m-d') . '&to=' . $to->format('Y-m-d') . '&language=en&pageSize=100&sources=bbc-news,cnn,the-verge';
             },
             'items_path' => 'articles',
             'mapping' => [
@@ -38,7 +38,7 @@ return [
             'items_path' => 'response.docs',
             'mapping' => [
                 'external_id' => function ($item) {
-                    return $item['_id'];
+                    return base64_encode($item['_id']);
                 },
                 'title' => 'headline.main',
                 'url' => 'web_url',
@@ -59,7 +59,7 @@ return [
             'items_path' => 'response.results',
             'mapping' => [
                 'external_id' => function ($item) {
-                    return $item['id'];
+                    return base64_encode($item['id']);
                 },
                 'title' => 'webTitle',
                 'url' => 'webUrl',
