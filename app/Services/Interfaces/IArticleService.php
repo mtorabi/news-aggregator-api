@@ -8,6 +8,10 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Collection;
 
+/**
+ * Interface for Article Service
+ * Core functionalities for managing articles 
+ */
 interface IArticleService
 {
     /**

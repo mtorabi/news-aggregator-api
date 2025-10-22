@@ -1,6 +1,10 @@
 <?php
 namespace App\Services\Interfaces;
 
+/**
+ * Interface for News Service
+ * Core functionalities for fetching and saving news articles from various sources
+ */
 interface INewsService
 {
     /**
