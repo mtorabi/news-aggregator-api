@@ -5,70 +5,26 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ArticleIndexRequest;
 use App\Http\Resources\ArticleResource;
-use App\Models\Article;
-use Illuminate\Http\Request;
+use App\Services\Interfaces\IArticleService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Database\Eloquent\Builder;
-use Carbon\Carbon;
 
 class ArticleController extends Controller
 {
+    protected IArticleService $articleService;
+
+    public function __construct(IArticleService $articleService)
+    {
+        $this->articleService = $articleService;
+    }
+
     /**
      * Get articles with search, filtering, and pagination
      */
-    public function index(ArticleIndexRequest $request): JsonResponse|AnonymousResourceCollection
+    public function index(ArticleIndexRequest $request): AnonymousResourceCollection
     {
-        $query = Article::query();
-
-        // Search functionality
-        if ($request->filled('search')) {
-            $query->search($request->get('search'));
-        }
-
-        // Filter by source
-        if ($request->filled('source')) {
-            $sources = is_array($request->get('source')) 
-                ? $request->get('source') 
-                : [$request->get('source')];
-            $query->fromSources($sources);
-        }
-
-        // Filter by category
-        if ($request->filled('category')) {
-            $categories = is_array($request->get('category')) 
-                ? $request->get('category') 
-                : [$request->get('category')];
-            $query->inCategories($categories);
-        }
-
-        // Filter by author
-        if ($request->filled('author')) {
-            $authors = is_array($request->get('author')) 
-                ? $request->get('author') 
-                : [$request->get('author')];
-            $query->byAuthors($authors);
-        }
-
-        // Date filtering
-        $dateFrom = $request->filled('date_from') 
-            ? Carbon::parse($request->get('date_from'))->startOfDay() 
-            : null;
-        $dateTo = $request->filled('date_to') 
-            ? Carbon::parse($request->get('date_to'))->endOfDay() 
-            : null;
+        $articles = $this->articleService->getArticles($request);
         
-        $query->publishedBetween($dateFrom, $dateTo);
-
-        // Sorting
-        $sortBy = $request->get('sort_by', 'published_at');
-        $sortOrder = $request->get('sort_order', 'desc');
-        $query->orderBy($sortBy, $sortOrder);
-
-        // Pagination
-        $perPage = min($request->get('per_page', 15), 100); // Max 100 per page
-        $articles = $query->paginate($perPage);
-
         return ArticleResource::collection($articles);
     }
 
@@ -77,7 +33,7 @@ class ArticleController extends Controller
      */
     public function show(int $id): JsonResponse|ArticleResource
     {
-        $article = Article::find($id);
+        $article = $this->articleService->getArticleById($id);
 
         if (!$article) {
             return response()->json([
@@ -93,11 +49,7 @@ class ArticleController extends Controller
      */
     public function getSources(): JsonResponse
     {
-        $sources = Article::select('source')
-            ->distinct()
-            ->whereNotNull('source')
-            ->orderBy('source')
-            ->pluck('source');
+        $sources = $this->articleService->getUniqueSources();
 
         return response()->json([
             'data' => $sources
@@ -109,11 +61,7 @@ class ArticleController extends Controller
      */
     public function getCategories(): JsonResponse
     {
-        $categories = Article::select('category')
-            ->distinct()
-            ->whereNotNull('category')
-            ->orderBy('category')
-            ->pluck('category');
+        $categories = $this->articleService->getUniqueCategories();
 
         return response()->json([
             'data' => $categories
@@ -125,12 +73,7 @@ class ArticleController extends Controller
      */
     public function getAuthors(): JsonResponse
     {
-        $authors = Article::select('author')
-            ->distinct()
-            ->whereNotNull('author')
-            ->where('author', '!=', '')
-            ->orderBy('author')
-            ->pluck('author');
+        $authors = $this->articleService->getUniqueAuthors();
 
         return response()->json([
             'data' => $authors
