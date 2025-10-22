@@ -5,6 +5,7 @@ A Laravel-based news aggregation API that fetches articles from multiple news so
 ## Table of Contents
 
 - [Development Setup](#development-setup)
+- [API Documentation](#api-documentation)
 - [Adding News Sources](#adding-news-sources)
 - [Scheduler Configuration](#scheduler-configuration)
 - [Architecture Overview](#architecture-overview)
@@ -115,6 +116,62 @@ docker-compose down
 
 # Rebuild services
 docker-compose up -d --build
+```
+
+## API Documentation
+
+The News Aggregator API provides comprehensive documentation using Swagger/OpenAPI 3.0. The API documentation is automatically generated from code annotations and is available at multiple endpoints.
+
+### Accessing API Documentation
+
+- **Swagger UI**: <http://localhost:8080/api/documentation> - Interactive documentation interface
+- **JSON Format**: <http://localhost:8080/docs> - OpenAPI JSON specification
+
+### API Endpoints
+
+#### Articles
+
+- `GET /api/v1/articles` - Get articles with search, filtering, and pagination
+  - Query parameters: `search`, `source`, `category`, `author`, `date_from`, `date_to`, `page`, `per_page`
+- `GET /api/v1/articles/{id}` - Get a specific article by ID
+
+#### Filters
+
+- `GET /api/v1/filters/sources` - Get unique sources for filtering
+- `GET /api/v1/filters/categories` - Get unique categories for filtering  
+- `GET /api/v1/filters/authors` - Get unique authors for filtering
+
+### Regenerating Documentation
+
+The API documentation is automatically generated in development mode. To manually regenerate:
+
+```bash
+# Using the custom documentation command (recommended)
+docker-compose exec app php artisan docs:generate
+
+# Using L5-Swagger directly
+docker-compose exec app php artisan l5-swagger:generate
+```
+
+### Configuration
+
+Swagger documentation is configured in:
+
+- `config/l5-swagger.php` - Main L5-Swagger configuration
+- Controller annotations - OpenAPI attributes in controller methods
+- Model schemas - OpenAPI schema definitions in models
+
+### Environment Variables
+
+```env
+# Auto-generate docs in development
+L5_SWAGGER_GENERATE_ALWAYS=true
+
+# Use absolute paths for assets  
+L5_SWAGGER_USE_ABSOLUTE_PATH=true
+
+# Documentation format (json or yaml)
+L5_FORMAT_TO_USE_FOR_DOCS=json
 ```
 
 ## Adding News Sources
