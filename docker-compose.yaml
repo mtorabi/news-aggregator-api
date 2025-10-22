@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   app:
     build:
@@ -71,6 +69,35 @@ services:
     container_name: laravel_horizon
     restart: unless-stopped
     command: php artisan horizon
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+      - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini:ro
+    depends_on:
+      - app
+      - db
+      - redis
+    networks:
+      - laravel
+
+  # Laravel Scheduler Service
+  # NOTE: This loop-based approach is designed for DEVELOPMENT environments only.
+  # For PRODUCTION, prefer external scheduler services such as:
+  # - AWS EventBridge (CloudWatch Events)
+  # - Google Cloud Scheduler
+  # - Kubernetes CronJobs
+  # - Host-level cron: * * * * * docker-compose exec -T app php artisan schedule:run
+  scheduler:
+    image: laravel_app:dev
+    container_name: laravel_scheduler
+    restart: unless-stopped
+    command: >
+      sh -c "
+        while true; do
+          php artisan schedule:run --verbose --no-interaction
+          sleep 60
+        done
+      "
     working_dir: /var/www
     volumes:
       - ./:/var/www
