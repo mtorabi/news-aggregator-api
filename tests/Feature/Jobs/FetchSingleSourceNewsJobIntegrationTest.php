@@ -36,7 +36,7 @@ describe('FetchSingleSourceNewsJob', function () {
 
         // Create and handle job
         $job = new FetchSingleSourceNewsJob('news_api_org', Carbon::yesterday(), Carbon::today());
-        $job->handle();
+        $job->handle(new NewsService());
 
         // If we reach here without exception, the job worked
         expect(true)->toBeTrue();
@@ -50,6 +50,6 @@ describe('FetchSingleSourceNewsJob', function () {
 
         $job = new FetchSingleSourceNewsJob('news_api_org', Carbon::yesterday(), Carbon::today());
 
-        expect(fn() => $job->handle())->toThrow(Exception::class);
+        expect(fn() => $job->handle(new NewsService()))->toThrow(Exception::class);
     });
 });

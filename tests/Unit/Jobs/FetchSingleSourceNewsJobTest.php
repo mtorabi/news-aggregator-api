@@ -17,7 +17,7 @@ it('handles successfully with valid source', function () {
     // Create the job
     $job = new FetchSingleSourceNewsJob($sourceKey, $fromDate, $toDate);
     
-    expect(fn() => $job->handle())->not->toThrow(Exception::class);
+    expect(fn() => $job->handle(new NewsService()))->not->toThrow(Exception::class);
 });
 
 it('logs correctly', function () {
@@ -27,7 +27,7 @@ it('logs correctly', function () {
     
     // We expect this to fail due to missing API key, but logging should work
     try {
-        $job->handle();
+        $job->handle(new NewsService());
     } catch (Exception $e) {
         // Expected since we don't have real API key
     }

@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Services\Interfaces\INewsService;
 use App\Services\NewsService;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
@@ -32,7 +33,7 @@ class FetchSingleSourceNewsJob implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(): void
+    public function handle(INewsService $newsService): void
     {
         Log::info("Starting FetchSingleSourceNewsJob for source: {$this->sourceKey}", [
             'source' => $this->sourceKey,
@@ -43,7 +44,6 @@ class FetchSingleSourceNewsJob implements ShouldQueue
         $newsConfig = config('news.resources');
 
         try {
-            $newsService = new NewsService();
             
             // Fetch articles from the specific source
             $articles = $newsService->fetchFromSource($newsConfig[$this->sourceKey], $this->fromDate, $this->toDate);
