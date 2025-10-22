@@ -39,21 +39,21 @@ class ArticleController extends Controller
                 in: "query",
                 description: "Filter articles by source",
                 required: false,
-                schema: new OA\Schema(type: "string")
+                schema: new OA\Schema(type: "array", items: new OA\Items(type: "string"))
             ),
             new OA\Parameter(
                 name: "category",
                 in: "query",
                 description: "Filter articles by category",
                 required: false,
-                schema: new OA\Schema(type: "string")
+                schema: new OA\Schema(type: "array", items: new OA\Items(type: "string"))
             ),
             new OA\Parameter(
                 name: "author",
                 in: "query",
                 description: "Filter articles by author",
                 required: false,
-                schema: new OA\Schema(type: "string")
+                schema: new OA\Schema(type: "array", items: new OA\Items(type: "string"))
             ),
             new OA\Parameter(
                 name: "date_from",
