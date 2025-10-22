@@ -24,7 +24,7 @@ This application uses Docker and Docker Compose for development. Follow these st
 1. **Clone the repository**
 
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/mtorabi/news-aggregator-api.git
    cd news-aggregator-api
    ```
 
@@ -35,11 +35,19 @@ This application uses Docker and Docker Compose for development. Follow these st
    cp .env.example .env
    ```
 
-3. **Configure API Keys**
+3. **Configure Database and API Keys**
 
-   Edit the `.env` file and add your API keys for the news sources:
+   Edit the `.env` file and configure the database credentials and API keys:
 
    ```env
+   # Database Configuration (must match docker-compose.yaml)
+   DB_CONNECTION=mysql
+   DB_HOST=db
+   DB_PORT=3306
+   DB_DATABASE=news_aggregator_api
+   DB_USERNAME=laravel
+   DB_PASSWORD=secret
+   
    # NewsAPI.org
    NEWS_API_ORG_KEY=your_newsapi_key_here
    
