@@ -21,5 +21,10 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
+
+        // Seed articles for testing the API
+        $this->call([
+            ArticleSeeder::class,
+        ]);
     }
 }
