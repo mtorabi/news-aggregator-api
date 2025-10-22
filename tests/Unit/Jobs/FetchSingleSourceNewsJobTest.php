@@ -17,9 +17,7 @@ it('handles successfully with valid source', function () {
     // Create the job
     $job = new FetchSingleSourceNewsJob($sourceKey, $fromDate, $toDate);
     
-    // We expect this to throw an exception due to invalid API key
-    // but this tests that the job structure is correct
-    expect(fn() => $job->handle())->toThrow(Exception::class);
+    expect(fn() => $job->handle())->not->toThrow(Exception::class);
 });
 
 it('logs correctly', function () {
