@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Services\Interfaces\IArticleService;
 use App\Services\Interfaces\INewsService;
+use App\Services\ArticleService;
 use App\Services\NewsService;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Horizon\Horizon;
@@ -31,6 +33,10 @@ class AppServiceProvider extends ServiceProvider
 
         $this->app->singleton(INewsService::class, function ($app) {
             return new NewsService();
+        });
+
+        $this->app->singleton(IArticleService::class, function ($app) {
+            return new ArticleService();
         });
     }
 }

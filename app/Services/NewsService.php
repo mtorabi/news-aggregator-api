@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Arr;
 use Throwable;
 
+/**
+ * Service to fetch and process news articles from various sources
+ */
 class NewsService implements INewsService
 {
     protected array $config;
