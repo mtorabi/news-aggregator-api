@@ -3,13 +3,14 @@
 namespace App\Services;
 
 use App\Models\Article;
+use App\Services\Interfaces\INewsService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Arr;
 use Throwable;
 
-class NewsService
+class NewsService implements INewsService
 {
     protected array $config;
 
