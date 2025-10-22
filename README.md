@@ -1,61 +1,331 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# News Aggregator API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A Laravel-based news aggregation API that fetches articles from multiple news sources using a queue-based architecture with Laravel Horizon.
 
-## About Laravel
+## Table of Contents
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- [Development Setup](#development-setup)
+- [Adding News Sources](#adding-news-sources)
+- [Scheduler Configuration](#scheduler-configuration)
+- [Architecture Overview](#architecture-overview)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Development Setup
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+This application uses Docker and Docker Compose for development. Follow these steps to get the application running locally.
 
-## Learning Laravel
+### Prerequisites
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+- Docker Desktop installed and running
+- Git
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### Setup Instructions
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+1. **Clone the repository**
 
-## Laravel Sponsors
+   ```bash
+   git clone <repository-url>
+   cd news-aggregator-api
+   ```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+2. **Environment Configuration**
 
-### Premium Partners
+   ```bash
+   # Copy the environment file
+   cp .env.example .env
+   ```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+3. **Configure API Keys**
 
-## Contributing
+   Edit the `.env` file and add your API keys for the news sources:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+   ```env
+   # NewsAPI.org
+   NEWS_API_ORG_KEY=your_newsapi_key_here
+   
+   # New York Times
+   NY_TIMES_API_KEY=your_nytimes_key_here
+   
+   # The Guardian
+   GUARDIAN_API_KEY=your_guardian_key_here
+   ```
 
-## Code of Conduct
+4. **Build and Start the Application**
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+   ```bash
+   # Build and start all services
+   docker-compose up -d
+   ```
 
-## Security Vulnerabilities
+5. **Install Dependencies and Setup Laravel**
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+   ```bash
+   # Access the workspace container
+   docker-compose exec workspace /bin/sh
+   
+   # Install PHP dependencies
+   composer install
+   
+   # Generate application key
+   php artisan key:generate
+   
+   # Run database migrations
+   php artisan migrate
+   
+   # Exit the container
+   exit
+   ```
 
-## License
+6. **Verify Installation**
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+   - Application: <http://localhost:8080>
+   - Database: MySQL on port 3306
+   - Redis: Available on port 6379
+   - Laravel Horizon: <http://localhost:8080/horizon>
+
+### Docker Services
+
+The application includes the following services:
+
+- **app**: Main Laravel application (PHP-FPM)
+- **nginx**: Web server serving the application
+- **db**: MySQL 8.0 database
+- **redis**: Redis server for queues and caching
+- **horizon**: Laravel Horizon queue dashboard and worker
+- **scheduler**: Automated task scheduler
+- **workspace**: Development workspace with all tools
+
+### Useful Commands
+
+```bash
+# View logs
+docker-compose logs -f app
+docker-compose logs -f scheduler
+docker-compose logs -f horizon
+
+# Access containers
+docker-compose exec app /bin/sh
+docker-compose exec workspace /bin/sh
+
+# Run artisan commands
+docker-compose exec app php artisan news:fetch
+docker-compose exec app php artisan queue:work
+
+# Stop all services
+docker-compose down
+
+# Rebuild services
+docker-compose up -d --build
+```
+
+## Adding News Sources
+
+The news sources are configured in `config/news.php`. Each source must define how to fetch and map article data.
+
+### Configuration Structure
+
+```php
+'resources' => [
+    'source_key' => [
+        'name' => 'Display Name',
+        'url' => function ($from, $to) {
+            // Return API endpoint URL
+        },
+        'items_path' => 'path.to.articles.array',
+        'mapping' => [
+            // Field mappings
+        ],
+    ],
+]
+```
+
+### Adding a New Source
+
+1. **Open the configuration file**
+
+   ```bash
+   # Edit the news configuration
+   vim config/news.php
+   ```
+
+2. **Add your new source configuration**
+
+   ```php
+   'your_source_key' => [
+       'name' => 'Your News Source',
+       'url' => function ($from, $to) {
+           return 'https://api.yournewssource.com/articles?' .
+               'from=' . $from->format('Y-m-d') . 
+               '&to=' . $to->format('Y-m-d') . 
+               '&apikey=' . env('YOUR_SOURCE_API_KEY');
+       },
+       'items_path' => 'data.articles', // JSON path to articles array
+       'mapping' => [
+           'external_id' => function ($item) {
+               return base64_encode($item['id']);
+           },
+           'title' => 'headline',           // Map to article title
+           'url' => 'article_url',          // Map to article URL
+           'body' => 'summary',             // Map to article content
+           'source' => 'Your News Source',  // Static source name
+           'author' => 'author_name',       // Map to author field
+           'image_url' => 'featured_image', // Map to image URL
+           'category' => 'section',         // Map to category
+           'published_at' => 'publish_date', // Map to publication date
+       ],
+   ],
+   ```
+
+3. **Add the API key to your environment**
+
+   ```env
+   YOUR_SOURCE_API_KEY=your_api_key_here
+   ```
+
+4. **Test the new source**
+
+   ```bash
+   # Manually run the news fetch command
+   docker-compose exec app php artisan news:fetch
+   
+   # Check the logs
+   docker-compose logs -f horizon
+   ```
+
+### Field Mapping Options
+
+- **String paths**: Use dot notation for nested JSON fields (e.g., `'response.data.title'`)
+- **Functions**: Use closures for complex transformations:
+
+  ```php
+  'external_id' => function ($item) {
+      return md5($item['url'] . $item['published_at']);
+  },
+  ```
+
+- **Static values**: Use strings for constant values like source names
+
+### Available Mapping Fields
+
+| Field | Description | Required |
+|-------|-------------|----------|
+| `external_id` | Unique identifier from source | Yes |
+| `title` | Article headline | Yes |
+| `url` | Link to full article | Yes |
+| `body` | Article summary/description | No |
+| `source` | Source name | Yes |
+| `author` | Article author | No |
+| `image_url` | Featured image URL | No |
+| `category` | Article category/section | No |
+| `published_at` | Publication timestamp | Yes |
+
+## Scheduler Configuration 
+
+The application uses Laravel's task scheduler to automatically fetch news articles. The scheduler runs as a separate Docker container and executes scheduled tasks every minute.
+
+### How It Works
+
+1. **Schedule Definition**: Tasks are defined in `routes/console.php`
+2. **Scheduler Container**: A dedicated Docker container runs `php artisan schedule:run` every 60 seconds. (Just for development purposes)
+3. **Task Execution**: The scheduler checks for due tasks and executes them
+4. **Queue Integration**: News fetching tasks are dispatched to Laravel Horizon queues
+
+### Current Schedule
+
+```php
+// Fetch news daily at 6:00 AM UTC
+Schedule::command('news:fetch')
+    ->dailyAt('06:00')
+    ->withoutOverlapping()     // Prevent concurrent runs
+    ->runInBackground()        // Non-blocking execution
+    ->timezone('UTC')          // Use UTC timezone
+    ->appendOutputTo(storage_path('logs/scheduler.log'));
+```
+
+### Production Scheduler Setup
+
+**⚠️ Important**: The Docker-based scheduler is for development only. In production, use:
+
+1. **Host-level cron job**:
+
+   ```bash
+   # Add to crontab
+   * * * * * cd /path/to/project && docker-compose exec -T app php artisan schedule:run >> /dev/null 2>&1
+   ```
+
+2. **Cloud-based schedulers**:
+   - AWS EventBridge (CloudWatch Events)
+   - Google Cloud Scheduler
+   - Azure Logic Apps
+
+3. **Kubernetes CronJobs**:
+
+   ```yaml
+   apiVersion: batch/v1
+   kind: CronJob
+   metadata:
+     name: laravel-scheduler
+   spec:
+     schedule: "* * * * *"
+     jobTemplate:
+       spec:
+         template:
+           spec:
+             containers:
+             - name: laravel
+               image: your-app:latest
+               command: ["php", "artisan", "schedule:run"]
+   ```
+
+### Monitoring the Scheduler
+
+1. **View scheduler logs**:
+
+   ```bash
+   docker-compose logs -f scheduler
+   ```
+
+2. **Check scheduled tasks**:
+
+   ```bash
+   docker-compose exec app php artisan schedule:list
+   ```
+
+3. **Test schedule manually**:
+
+   ```bash
+   docker-compose exec app php artisan schedule:run
+   ```
+
+## Architecture Overview
+
+### News Fetching Flow
+
+1. **Scheduler** triggers the `news:fetch` command daily at 6:00 AM UTC
+2. **FetchNewsCommand** reads source configurations from `config/news.php`
+3. **Jobs are dispatched** to the `news-fetch` queue for each configured source
+4. **Laravel Horizon** processes the jobs using `FetchSingleSourceNewsJob`
+5. **Articles are fetched** from each API and stored in the database
+6. **Duplicate articles** are prevented using the `external_id` field
+
+### Key Components
+
+- **FetchNewsCommand**: Console command that dispatches fetch jobs
+- **FetchSingleSourceNewsJob**: Queue job that fetches from a single source
+- **NewsService**: Service class handling API requests and data processing
+- **Article Model**: Eloquent model for storing article data
+- **Laravel Horizon**: Queue dashboard and worker management
+
+### Queue Configuration
+
+The application uses Redis for queue management with Laravel Horizon providing:
+
+- Real-time queue monitoring
+- Failed job handling
+- Worker process management
+- Queue metrics and insights
+
+Access Horizon at: <http://localhost:8080/horizon>
+
+---
+
+For more information, check the Laravel documentation for [Task Scheduling](https://laravel.com/docs/scheduling) and [Queues](https://laravel.com/docs/queues).
